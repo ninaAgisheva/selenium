@@ -14,15 +14,16 @@ LINK = 'http://localhost/litecart/admin/?app=countries&doc=countries'
 @pytest.fixture
 def browser():
     chrome_options = Options()
-    chrome_options.add_argument('--window-size=1920,1080')  
+    chrome_options.add_argument('--window-size=1920,1080')
     browser = webdriver.Chrome(options=chrome_options)
     browser.implicitly_wait(10)
 
     authorize(browser)
 
-    yield browser  
+    yield browser
 
     browser.quit()
+
 
 def authorize(browser):
     browser.get(LINK)
@@ -30,30 +31,82 @@ def authorize(browser):
     password = browser.find_element_by_name('password').send_keys('admin')
     button_login = browser.find_element_by_name('login').click()
 
-def test_sort1(browser):
-    browser.get(LINK)
-    list_name_country(browser)
 
-def get_list_countries(browser):
-    list_countries = browser.find_element_by_class_name('dataTable')
-    
-    return list_countries.find_elements_by_class_name('row')
+def test_sort_countries(browser):
+    press_button_countries(browser)
+    all_countries_list, countries_with_zone_list = get_all_countries_and_countries_with_zones_lists(browser)
 
-def list_name_country(browser):
-    list_countries = get_list_countries(browser)
-    row = get_list_countries.find_elements_by_tag_name('td')
-    name_countries = row[4]
-    list_sort = []
-
-    for element in list_name_countries:
-
-        list_sort += element
-
-    list_sort2 = list_sort.sort()
-
-    assert list_sort == list_sort2 
+    check_all_countries_sorted_properly(all_countries_list)
+    check_zones_sorted_properly(browser, countries_with_zone_list)
 
 
+def check_all_countries_sorted_properly(all_countries_list):
+    check_that_list_is_sorted(all_countries_list)
 
 
+def check_zones_sorted_properly(browser, countries_with_zone_list):
+    for country_link in countries_with_zone_list:
+        zone_list = get_list_of_zones(browser, country_link)
 
+        check_that_list_is_sorted(zone_list)
+
+
+def get_list_of_zones(browser, country_link):
+    browser.get(country_link)
+    table_of_zones = browser.find_element_by_id('table-zones')
+    table_rows = table_of_zones.find_elements_by_tag_name('tr')[1:-1]
+
+    list_of_zones = []
+
+    for row in table_rows:
+        name = row.find_elements_by_tag_name('td')[2].text
+        list_of_zones.append(name)
+
+    return list_of_zones
+
+
+def check_that_list_is_sorted(some_list):
+    some_list_copy = some_list.copy()
+
+    assert sorted(some_list_copy) == some_list
+
+
+def press_button_countries(browser):
+    general_menu = browser.find_element_by_id('box-apps-menu')
+    inner_elements = general_menu.find_elements_by_tag_name('li')
+    button_countries = inner_elements[2]
+    button_countries.click()
+
+
+def get_all_countries_and_countries_with_zones_lists(browser):
+    countries_table = browser.find_element_by_class_name('dataTable')
+    rows = countries_table.find_elements_by_tag_name('tr')[1:-1]
+
+    countries_list = []
+    countries_with_zone = []
+
+    for row in rows:
+        countries_list.append(get_country_name_text(row))
+
+        if has_zone(row):
+            countries_with_zone.append(get_country_name_link(row))
+
+    return countries_list, countries_with_zone
+
+
+def has_zone(row):
+    return int(row.find_elements_by_tag_name('td')[5].text) > 0
+
+
+def get_country_name_text(row):
+    return get_country_name(row).text
+
+
+def get_country_name_link(row):
+    return get_country_name(row).get_attribute('href')
+
+
+def get_country_name(row):
+    country_name_ceil = row.find_elements_by_tag_name('td')[4]
+
+    return country_name_ceil.find_element_by_tag_name('a')
