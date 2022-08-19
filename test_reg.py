@@ -51,7 +51,6 @@ def full_fields(browser):
     postcode = browser.find_element_by_name('postcode').send_keys('12345')
     city = browser.find_element_by_name('city').send_keys('city')
     country = list_country(browser)
-    #US = browser.find_element_by_id('select2-country_code-gh-result-g9hw-US')
     email = browser.find_element_by_name('email').send_keys(generate_email())
     phone = browser.find_element_by_name('phone').send_keys('+70000456754')
     desired_password = browser.find_element_by_name('password').send_keys(pwd)
