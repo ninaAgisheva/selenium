@@ -33,15 +33,9 @@ def authorize(browser):
 
 
 def test_sort_countries(browser):
-    press_button_countries(browser)
-    all_countries_list, countries_with_zone_list = get_all_countries_and_countries_with_zones_lists(browser)
+    countries_with_zone_list = get_countries_with_zones_lists(browser)
 
-    check_all_countries_sorted_properly(all_countries_list)
     check_zones_sorted_properly(browser, countries_with_zone_list)
-
-
-def check_all_countries_sorted_properly(all_countries_list):
-    check_that_list_is_sorted(all_countries_list)
 
 
 def check_zones_sorted_properly(browser, countries_with_zone_list):
@@ -71,28 +65,16 @@ def check_that_list_is_sorted(some_list):
     assert sorted(some_list_copy) == some_list
 
 
-def get_all_countries_and_countries_with_zones_lists(browser):
+def get_countries_with_zones_lists(browser):
     countries_table = browser.find_element_by_class_name('dataTable')
     rows = countries_table.find_elements_by_tag_name('tr')[1:-1]
 
-    countries_list = []
     countries_with_zone = []
 
     for row in rows:
-        countries_list.append(get_country_name_text(row))
+        countries_with_zone.append(get_country_name_link(row))
 
-        if has_zone(row):
-            countries_with_zone.append(get_country_name_link(row))
-
-    return countries_list, countries_with_zone
-
-
-def has_zone(row):
-    return int(row.find_elements_by_tag_name('td')[5].text) > 0
-
-
-def get_country_name_text(row):
-    return get_country_name(row).text
+    return countries_with_zone
 
 
 def get_country_name_link(row):
