@@ -28,25 +28,16 @@ def browser():
 
 def test_basket(browser):
     browser.get(LINK)
-    open_first_product(browser)
-    add_product_to_basket(browser)
-    counter_increase(browser, '1')
-    go_back_to_the_main_page(browser)
-    open_first_product(browser)
-    add_product_to_basket(browser)
-    counter_increase(browser, '2')
-    go_back_to_the_main_page(browser)
-    open_first_product(browser)
-    add_product_to_basket(browser)
-    counter_increase(browser, '3')
-    go_back_to_the_main_page(browser)
+    for function in range(1,4):
+        open_first_product(browser)
+        add_product_to_basket(browser)
+        counter_increase(browser, str(function))
+        go_back_to_the_main_page(browser)
     go_to_basket(browser)
-    remove_produkt(browser)
-    table_increase(browser, 2)
-    remove_produkt(browser)
-    table_increase(browser, 1)
-    remove_produkt(browser)
-    table_increase(browser, 0)
+    amount_produkts = get_how_many_produkts(browser)
+    for function in range(amount_produkts, -1, -1):
+        remove_produkt(browser)
+        table_increase(browser, amount_produkts-1)
 
 
 def open_first_product(browser):
@@ -67,6 +58,7 @@ def has_selector(browser):
         return True
     except NoSuchElementException:
         return False
+
 
 def select_value(browser):
     browser.find_element_by_xpath("//select[@name='options[Size]']/option[@value='Small']").click()
@@ -100,6 +92,12 @@ def go_to_basket(browser):
 
 def remove_produkt(browser):
     browser.find_element_by_name('remove_cart_item').click()
+
+
+def get_how_many_produkts(browser):
+    amount_produkts = browser.find_element_by_class_name('shortcuts')
+
+    return len(amount_produkts.find_elements_by_tag_name('shortcut'))
 
 
 def get_line_table(browser):
