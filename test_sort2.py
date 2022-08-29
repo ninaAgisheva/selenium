@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.select import Select
 
 
 LINK = 'http://localhost/litecart/admin/?app=geo_zones&doc=geo_zones'
@@ -53,9 +54,11 @@ def get_list_of_zones(browser, country_link):
     list_of_zones = []
 
     for row in table_rows:
-        name = row.find_elements_by_tag_name('td')[2].get_attribute('selected')
-        list_of_zones.append(name)
-    breakpoint()
+        zone_list = row.find_elements_by_tag_name('td')[2]
+        zone_select_element = zone_list.find_element_by_tag_name('select')
+        zone_selector = Select(zone_select_element)
+        selected_option = zone_selector.first_selected_option.text
+        list_of_zones.append(selected_option)
     return list_of_zones
 
 
