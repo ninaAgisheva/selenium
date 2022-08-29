@@ -53,9 +53,9 @@ def get_list_of_zones(browser, country_link):
     list_of_zones = []
 
     for row in table_rows:
-        name = row.find_elements_by_tag_name('td')[2].text
+        name = row.find_elements_by_tag_name('td')[2].get_attribute('selected')
         list_of_zones.append(name)
-
+    breakpoint()
     return list_of_zones
 
 

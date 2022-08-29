@@ -14,10 +14,11 @@ pwd = 'password'
 
 @pytest.fixture
 def browser():
-    chrome_options = Options()
-    chrome_options.add_argument('--window-size=1920,1080')  
-    browser = webdriver.Chrome(options=chrome_options)
-    browser.implicitly_wait(10)
+    #Schrome_options = Options()
+    #chrome_options.add_argument('--window-size=1920,1080')  
+    #browser = webdriver.Chrome(options=chrome_options)
+    #browser.implicitly_wait(10)
+    browser = webdriver.Firefox()
 
     yield browser  
 

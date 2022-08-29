@@ -16,10 +16,11 @@ LINK = 'http://localhost/litecart/en/'
 
 @pytest.fixture
 def browser():
-    chrome_options = Options()
-    chrome_options.add_argument('--window-size=1920,1080')
-    browser = webdriver.Chrome(options=chrome_options)
+    #chrome_options = Options()
+    #chrome_options.add_argument('--window-size=1920,1080')
+    #browser = webdriver.Chrome(options=chrome_options)
     #browser.implicitly_wait(10)
+    browser = webdriver.Firefox()
 
     yield browser
 
@@ -35,9 +36,11 @@ def test_basket(browser):
         go_back_to_the_main_page(browser)
     go_to_basket(browser)
     amount_produkts = get_how_many_produkts(browser)
-    for function in range(amount_produkts, -1, -1):
+    for function in range(amount_produkts):
+        amount_produkts = get_how_many_produkts(browser)
+        table_increase(browser, amount_produkts)
         remove_produkt(browser)
-        table_increase(browser, amount_produkts-1)
+        
 
 
 def open_first_product(browser):
@@ -103,16 +106,13 @@ def get_how_many_produkts(browser):
 def get_line_table(browser):
     table = browser.find_element_by_class_name('rounded-corners')
 
-    return table.find_elements_by_tag_name('tr')
+    return len(table.find_elements_by_tag_name('tr'))
 
 
-def table_increase(browser, param):
+def table_increase(browser):
     table = get_line_table(browser)
-    line_table = table[param]
+    line_table = table - 5
     wait = WebDriverWait(browser, 5)
     wait.until(EC.staleness_of(line_table))
-
-
-
 
 
