@@ -30,7 +30,9 @@ def test_ducks(browser):
     main_price = get_price(browser, get_product, 's')
     main_sale_price = get_price(browser, get_product, 'strong')
     main_color_price = get_color(browser, get_product, 's')
+    parse_color_gray(main_color_price)
     main_color_sale_price = get_color(browser, get_product,'strong')
+    parse_color_red(main_color_sale_price)
     main_size_price = get_size(browser, get_product, 's')
     main_size_sale_price = get_size(browser, get_product, 'strong')
     tag_main_price = get_tag(browser, get_product, 'regular-price')
@@ -48,7 +50,9 @@ def test_ducks(browser):
     product_price = get_price(browser, get_cart_product, 's')
     product_sale_price = get_price(browser, get_cart_product, 'strong')
     product_color_price = get_color(browser, get_cart_product,'s')
+    parse_color_gray(product_color_price)
     product_color_sale_price = get_color(browser, get_cart_product, 'strong')
+    parse_color_red(product_color_sale_price)
     product_size_price = get_size(browser, get_cart_product, 's')
     product_size_sale_price = get_size(browser, get_cart_product, 'strong')
     tag_product_price = get_tag(browser, get_cart_product, 'regular-price')
@@ -94,6 +98,21 @@ def get_color(browser, get_product_function, tag_name):
     price = product.find_element_by_class_name('price-wrapper')
 
     return price.find_element_by_tag_name(tag_name).value_of_css_property("color")
+
+
+def parse_color_gray(color_string):
+    color = color_string.split('(')[1]
+    color_RGB = color.split(')')[0]
+    R, G, B, ignore = color_RGB.split(', ')
+
+    assert R == G == B
+
+def parse_color_red(color_string):
+    color = color_string.split('(')[1]
+    color_RGB = color.split(')')[0]
+    R, G, B, ignore = color_RGB.split(', ')
+
+    assert G == B
 
 
 def get_size(browser, get_product_function, tag_name):
