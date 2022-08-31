@@ -16,11 +16,13 @@ LINK = 'http://localhost/litecart/en/'
 
 @pytest.fixture
 def browser():
-    #chrome_options = Options()
-    #chrome_options.add_argument('--window-size=1920,1080')
-    #browser = webdriver.Chrome(options=chrome_options)
-    #browser.implicitly_wait(10)
-    browser = webdriver.Firefox()
+    chrome_options = Options()
+    chrome_options.add_argument('--window-size=1920,1080')
+    # для устранения перестройки DOM, отключила JS
+    chrome_options.add_experimental_option( "prefs",{'profile.managed_default_content_settings.javascript': 2})
+    browser = webdriver.Chrome(options=chrome_options)
+    browser.implicitly_wait(2)
+    #browser = webdriver.Firefox()
 
     yield browser
 
@@ -29,17 +31,26 @@ def browser():
 
 def test_basket(browser):
     browser.get(LINK)
-    for function in range(1,4):
+
+    for commodity_index in range(1,4):
         open_first_product(browser)
         add_product_to_basket(browser)
-        counter_increase(browser, str(function))
+        check_counter_increase(browser, str(commodity_index))
         go_back_to_the_main_page(browser)
+
     go_to_basket(browser)
-    amount_produkts = get_how_many_produkts(browser)
-    for function in range(amount_produkts):
-        amount_produkts = get_how_many_produkts(browser)
-        table_increase(browser, amount_produkts)
-        remove_produkt(browser)
+    products_amount = count_products(browser)
+
+    for index in range(1, products_amount+1):
+        remove_product(browser, products_amount + 1 - index) # передаем количество оставшихся элементов для обработки карусели
+
+        if has_summary_table(browser):
+            new_products_amount = count_products(browser)
+        else:
+            new_products_amount = products_amount - index
+
+        if products_amount - index != new_products_amount:
+            pytest.fail()
         
 
 
@@ -67,9 +78,9 @@ def select_value(browser):
     browser.find_element_by_xpath("//select[@name='options[Size]']/option[@value='Small']").click()
 
 
-def counter_increase(browser, param):
-    wait = WebDriverWait(browser, 5)
-    wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, '#cart > a.content > span.quantity') , param))
+def check_counter_increase(browser, param):
+        wait = WebDriverWait(browser, 5)
+        wait.until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, '#cart > a.content > span.quantity') , param))
 
 
 def get_crumbs(browser):
@@ -93,14 +104,52 @@ def go_to_basket(browser):
     get_link_cart(browser).click()
 
 
-def remove_produkt(browser):
-    browser.find_element_by_name('remove_cart_item').click()
+def remove_product(browser, elements_amount):
+    remove_button = browser.find_element_by_name('remove_cart_item')
+    for element in range(0, elements_amount):
+
+        try:
+            remove_button.click()
+            break
+
+        except ElementNotInteractableException:
+            # если в момент нажатия сработала карусель - кликаем еще раз
+            time.sleep(1)
+            continue
 
 
-def get_how_many_produkts(browser):
-    amount_produkts = browser.find_element_by_class_name('shortcuts')
+def count_products(browser):
+    summary = browser.find_element_by_id('box-checkout-summary')
+    table = summary.find_element_by_tag_name('table')
+    table_rows = table.find_elements_by_tag_name('tr')
 
-    return len(amount_produkts.find_elements_by_tag_name('shortcut'))
+    products_amount = parse_summary_table(table_rows)
+
+    return products_amount
+
+
+def parse_summary_table(table_rows):
+    counter = 0
+
+    for row in table_rows[1:]:  # исключаем хэдер таблицы
+        if row_contets_product(row):
+            counter += 1
+
+    return counter
+
+
+def row_contets_product(row):
+    row_attributes = row.find_elements_by_tag_name('td')
+
+    return validate_row_attributes(row_attributes)
+
+
+def validate_row_attributes(row_attributes):
+    try:
+        item_ceil = row_attributes[1]
+        return item_ceil.get_attribute('class') == 'item'
+    except IndexError:
+        return False
 
 
 def get_line_table(browser):
@@ -114,5 +163,14 @@ def table_increase(browser):
     line_table = table - 5
     wait = WebDriverWait(browser, 5)
     wait.until(EC.staleness_of(line_table))
+
+
+def has_summary_table(browser):
+    try:
+        browser.find_element_by_id('box-checkout-summary')
+    except NoSuchElementException:
+        return False
+
+    return True
 
 

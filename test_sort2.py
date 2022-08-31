@@ -38,6 +38,9 @@ def test_sort_countries(browser):
 
     check_zones_sorted_properly(browser, countries_with_zone_list)
 
+def get_list_products(browser):
+    table = browser.find_element_by_class_name('dataTable')
+
 
 def check_zones_sorted_properly(browser, countries_with_zone_list):
     for country_link in countries_with_zone_list:
@@ -56,9 +59,10 @@ def get_list_of_zones(browser, country_link):
     for row in table_rows:
         zone_list = row.find_elements_by_tag_name('td')[2]
         zone_select_element = zone_list.find_element_by_tag_name('select')
-        zone_selector = Select(zone_select_element)
-        selected_option = zone_selector.first_selected_option.text
-        list_of_zones.append(selected_option)
+        attribute_name = zone_select_element.get_attribute('name')
+        selected_option = browser.find_element_by_xpath(f"//select[@name='{attribute_name}']/option[@selected='selected']")
+
+        list_of_zones.append(selected_option.text)
     return list_of_zones
 
 
@@ -88,3 +92,7 @@ def get_country_name(row):
     country_name_ceil = row.find_elements_by_tag_name('td')[4]
 
     return country_name_ceil.find_element_by_tag_name('a')
+
+
+
+#browser.find_element_by_xpath("//select[@name=name]/option[@selected='selected']")
